@@ -4,51 +4,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>放置少女 育成シミュレーター (スマホ最適化版)</title>
+    <title>放置少女 育成シミュレーター (画面ぴったり版)</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f4f8; color: #333; margin: 0; padding: 10px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        h1 { font-size: 1.3em; border-left: 5px solid #4caf50; padding-left: 10px; margin-top: 5px; margin-bottom: 20px; color: #2e7d32; }
-        h3 { font-size: 1.05em; margin: 0 0 10px 0; color: #444; display: flex; justify-content: space-between; align-items: center; }
-        .section { margin-bottom: 15px; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f0f4f8; color: #333; margin: 0; padding: 4px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 8px 4px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h1 { font-size: 1.15em; border-left: 5px solid #4caf50; padding-left: 6px; margin-top: 5px; margin-bottom: 12px; color: #2e7d32; }
+        h3 { font-size: 0.95em; margin: 0 0 6px 0; color: #444; }
+        .section { margin-bottom: 10px; padding: 8px 4px; border: 1px solid #e0e0e0; border-radius: 6px; background-color: #f9f9f9; }
         
-        /* テーブルのスマホ最適化 */
-        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 6px; border: 1px solid #ddd; background: white; }
-        table { width: 100%; border-collapse: collapse; min-width: 450px; }
-        th, td { border: 1px solid #eee; padding: 6px; text-align: center; font-size: 0.9em; }
-        th { background-color: #f1f5f9; color: #475569; font-weight: 600; }
+        /* 横スワイプ（スクロール）を完全に無くすためのテーブル設定 */
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; background: white; }
+        th, td { border: 1px solid #ddd; padding: 4px 1px; text-align: center; font-size: 0.85em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        th { background-color: #f1f5f9; color: #475569; font-weight: 600; font-size: 0.8em; }
         
-        /* フォーム要素の調整 */
-        input[type="number"], select { width: 100%; padding: 8px 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; outline: none; background-color: #fff; text-align: center; }
-        input[type="number"]:focus, select:focus { border-color: #4caf50; box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2); }
+        /* 入力欄の最適化（余白を極限まで削り、6桁表示に対応） */
+        input[type="number"], select { width: 100%; padding: 5px 1px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 15px; outline: none; background-color: #fff; text-align: center; -moz-appearance: textfield; }
+        input[type="number"]:focus, select:focus { border-color: #4caf50; }
         
-        /* ラジオボタン・チェックボックスの押しやすさ向上 */
-        .radio-group, .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-        .radio-label, .checkbox-label { display: flex; align-items: center; padding: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 0.95em; }
-        .radio-label input, .checkbox-label input { margin-right: 10px; transform: scale(1.2); }
+        /* スピナー（上下矢印）を非表示にして幅を確保 */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         
-        /* 設定項目のグリッド配置 */
-        .flex-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
-        .flex-item { flex: 1; min-width: 120px; }
-        .inline-input { display: inline-block; width: 70px !important; margin: 0 4px; padding: 4px !important; text-align: center; }
+        /* ラジオボタン・チェックボックスの押しやすさと省スペース化 */
+        .radio-group, .checkbox-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+        .radio-label, .checkbox-label { display: flex; align-items: center; padding: 8px; background: white; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
+        .radio-label input, .checkbox-label input { margin-right: 6px; transform: scale(1.1); }
+        
+        /* 設定項目のコンパクト配置 */
+        .flex-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; font-size: 0.9em; }
+        .inline-input { display: inline-block; width: 42px !important; padding: 3px 1px !important; text-align: center; font-size: 14px; margin: 0 2px; }
+        .inline-select { display: inline-block; width: auto !important; padding: 3px 12px 3px 4px !important; font-size: 14px; margin: 0 2px; }
         
         /* ボタン */
-        .btn { display: block; width: 100%; background-color: #4caf50; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1em; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { display: block; width: 100%; background-color: #4caf50; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.95em; text-align: center; }
         .btn:hover { background-color: #45a049; }
-        .btn-copy { background-color: #2196F3; margin-top: 10px; padding: 10px; font-size: 0.95em; }
-        .btn-copy:hover { background-color: #1976D2; }
+        .btn-copy { background-color: #2196F3; margin-top: 8px; padding: 8px; font-size: 0.9em; }
         
-        .error { color: #d32f2f; font-size: 0.85em; margin-top: 8px; font-weight: bold; }
-        .percentage-badge { font-weight: bold; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; display: inline-block; }
-        .hint { font-size: 0.8em; color: #64748b; margin-top: 5px; line-height: 1.4; }
+        .error { color: #d32f2f; font-size: 0.8em; margin-top: 4px; font-weight: bold; }
+        .percentage-badge { font-weight: bold; color: #15803d; background: #dcfce7; padding: 1px 3px; border-radius: 3px; font-size: 0.8em; display: inline-block; }
+        .hint { font-size: 0.75em; color: #64748b; margin-top: 4px; line-height: 1.3; }
         
         /* 結果表示エリア */
-        .result-area { margin-top: 15px; background: #f0fdf4; padding: 12px; border-radius: 8px; border: 1px solid #bbf7d0; }
-        .result-area h4 { margin: 15px 0 5px 0; font-size: 0.95em; color: #166534; }
-        .result-list { padding-left: 20px; margin: 5px 0; font-size: 0.9em; color: #374151; }
-        .result-list li { margin-bottom: 4px; }
+        .result-area { margin-top: 10px; background: #f0fdf4; padding: 8px 4px; border-radius: 6px; border: 1px solid #bbf7d0; }
+        .result-area h4 { margin: 10px 0 4px 0; font-size: 0.9em; color: #166534; }
+        .result-list { padding-left: 15px; margin: 4px 0; font-size: 0.85em; color: #374151; }
+        .result-list li { margin-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -59,29 +61,35 @@
     <!-- 1. 入力セクション -->
     <div class="section">
         <h3>1. ステータス入力</h3>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 18%;">項目</th>
-                        <th style="width: 25%;">現在値</th>
-                        <th style="width: 25%;">上限値</th>
-                        <th style="width: 17%;">割合</th>
-                        <th style="width: 15%;">重み</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(s, index) in status" :key="index">
-                        <td><strong>{{ statuses_name[index] }}</strong></td>
-                        <td><input type="number" v-model.number="s.cur"></td>
-                        <td><input type="number" v-model.number="s.max"></td>
-                        <td><span class="percentage-badge">{{ calcCurrentRate(s) }}%</span></td>
-                        <td><input type="number" v-model.number="weight[index]"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <p class="hint">※スマホ等で表がはみ出る場合は横にスクロールできます。重みの合計がプラスの時に「採用」されます。</p>
+        <table>
+            <!-- 各列の幅をパーセンテージで固定し、画面内に収める -->
+            <colgroup>
+                <col style="width: 14%;">
+                <col style="width: 27%;">
+                <col style="width: 27%;">
+                <col style="width: 18%;">
+                <col style="width: 14%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>項目</th>
+                    <th>現在値</th>
+                    <th>上限値</th>
+                    <th>割合</th>
+                    <th>重み</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(s, index) in status" :key="index">
+                    <td><strong>{{ statuses_name[index] }}</strong></td>
+                    <td><input type="number" v-model.number="s.cur"></td>
+                    <td><input type="number" v-model.number="s.max"></td>
+                    <td><span class="percentage-badge">{{ calcCurrentRate(s) }}%</span></td>
+                    <td><input type="number" v-model.number="weight[index]"></td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="hint">※重み合計プラスで採用。主力ステ重視なら他は0に設定。</p>
     </div>
 
     <!-- 2. 設定セクション -->
@@ -97,36 +105,38 @@
         </div>
 
         <!-- 自動育成の設定 -->
-        <div v-if="calc1" style="margin-top:12px; padding:10px; border-top:1px dashed #cbd5e1;">
+        <div v-if="calc1" style="margin-top:8px; padding-top:8px; border-top:1px dashed #cbd5e1;">
             <div class="flex-row">
-                <span class="flex-item" style="min-width:100%;">
+                <span>
                     <strong>目標:</strong> 
-                    <select v-model="prio" style="display:inline-block; width:auto; margin:0 4px; padding:4px 24px 4px 8px;">
+                    <select v-model="prio" class="inline-select">
                         <option v-for="name in statuses_name" :value="name">{{ name }}</option>
                     </select>
                     が 
-                    <input type="number" v-model.number="goal_thr" class="inline-input"> % になるまで
+                    <input type="number" v-model.number="goal_thr" class="inline-input" style="width:35px !important;"> %になるまで
                 </span>
             </div>
-            <div class="hint" style="margin-bottom: 5px; font-weight: bold;">▼ アイテム切り替え点(割合%)</div>
-            <div class="flex-row" style="font-size:0.9em;">
-                <div>C→B: <input type="number" v-model.number="c_thr" class="inline-input" style="width:45px !important;">%</div>
-                <div>B→A: <input type="number" v-model.number="b_thr" class="inline-input" style="width:45px !important;">%</div>
-                <div>A→S: <input type="number" v-model.number="a_thr" class="inline-input" style="width:45px !important;">%</div>
+            <div class="flex-row" style="margin-top:4px;">
+                <strong>切替点:</strong>
+                <span>C→B:<input type="number" v-model.number="c_thr" class="inline-input">%</span>
+                <span>B→A:<input type="number" v-model.number="b_thr" class="inline-input">%</span>
+                <span>A→S:<input type="number" v-model.number="a_thr" class="inline-input">%</span>
             </div>
         </div>
 
         <!-- 個数指定の設定 -->
-        <div v-if="calc2" style="margin-top:12px; padding:10px; border-top:1px dashed #cbd5e1; font-size:0.95em;">
-            <strong>アイテム:</strong>
-            <select v-model="tan_type" style="display:inline-block; width:auto; margin:0 4px; padding:4px 24px 4px 8px;">
-                <option value="C">C級</option>
-                <option value="B">B級</option>
-                <option value="A">A級</option>
-                <option value="S">S級</option>
-            </select>
-            を 
-            <input type="number" v-model.number="numTan" class="inline-input" style="width:80px !important;"> 個使用
+        <div v-if="calc2" style="margin-top:8px; padding-top:8px; border-top:1px dashed #cbd5e1;">
+            <div class="flex-row">
+                <strong>アイテム:</strong>
+                <select v-model="tan_type" class="inline-select">
+                    <option value="C">C級</option>
+                    <option value="B">B級</option>
+                    <option value="A">A級</option>
+                    <option value="S">S級</option>
+                </select>
+                を 
+                <input type="number" v-model.number="numTan" class="inline-input" style="width:60px !important;"> 個使用
+            </div>
         </div>
     </div>
 
@@ -143,27 +153,28 @@
 
     <!-- 4. 結果表示セクション -->
     <div v-if="submitted" class="result-area">
-        <h3>
-            <span>結果 <small v-if="isRepeat100">(100回平均)</small></span>
-        </h3>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 30%;">ステータス</th>
-                        <th style="width: 35%;">最終値 (平均)</th>
-                        <th style="width: 35%;">最終進捗率</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(r, index) in result" :key="index">
-                        <td><strong>{{ statuses_name[index] }}</strong></td>
-                        <td>{{ r.cur | fix_1 }}</td>
-                        <td>{{ (r.cur / r.max * 100) | fix_1 }}%</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <h3>結果 <small v-if="isRepeat100">(100回平均)</small></h3>
+        <table>
+            <colgroup>
+                <col style="width: 24%;">
+                <col style="width: 38%;">
+                <col style="width: 38%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>ステータス</th>
+                    <th>最終値 (平均)</th>
+                    <th>最終進捗率</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(r, index) in result" :key="index">
+                    <td><strong>{{ statuses_name[index] }}</strong></td>
+                    <td>{{ r.cur | fix_1 }}</td>
+                    <td>{{ (r.cur / r.max * 100) | fix_1 }}%</td>
+                </tr>
+            </tbody>
+        </table>
 
         <button class="btn btn-copy" @click="copyResultToInput">
             この結果を現在値に反映する (四捨五入)
@@ -222,7 +233,7 @@ new Vue({
             for (let i = 0; i < 4; i++) {
                 this.status[i].cur = Math.round(this.result[i].cur);
             }
-            alert("反映しました。次のステップのシミュレーションが可能です。");
+            alert("反映しました。");
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
         calcRate: function(cntArray) {
