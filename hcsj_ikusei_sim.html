@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>放置少女 育成シミュレーター (画面ぴったり版)</title>
+    <title>放置少女 育成シミュレーター仮</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -89,7 +89,7 @@
                 </tr>
             </tbody>
         </table>
-        <p class="hint">※重み合計プラスで採用。主力ステ重視なら他は0に設定。</p>
+        <p class="hint">※重み×変動値の合計がプラスで採用。主力ステ重視なら他は0に設定。</p>
     </div>
 
     <!-- 2. 設定セクション -->
@@ -97,10 +97,10 @@
         <h3>2. 育成方法の設定</h3>
         <div class="radio-group">
             <label class="radio-label">
-                <input type="radio" value="1" v-model="which_sim" @change="onChg"> 目標値まで自動育成 (Calc1)
+                <input type="radio" value="1" v-model="which_sim" @change="onChg"> 目標値まで自動育成
             </label>
             <label class="radio-label">
-                <input type="radio" value="2" v-model="which_sim" @change="onChg"> アイテム個数指定 (Calc2)
+                <input type="radio" value="2" v-model="which_sim" @change="onChg"> アイテム個数指定
             </label>
         </div>
 
@@ -201,10 +201,10 @@ new Vue({
     data: {
         statuses_name: ["筋力", "敏捷", "知力", "体力"],
         status: [
-            { cur: 2000, max: 10000 },
-            { cur: 2000, max: 10000 },
-            { cur: 2000, max: 10000 },
-            { cur: 2000, max: 10000 },
+            { cur: 1000, max: 300000 },
+            { cur: 1000, max: 300000 },
+            { cur: 1000, max: 300000 },
+            { cur: 1000, max: 300000 },
         ],
         result: [],
         weight: [1, 0, 0, 1],
@@ -221,7 +221,7 @@ new Vue({
         calc1: true,
         calc2: false,
         which_sim: 1,
-        isRepeat100: true
+        isRepeat100: false
     },
     methods: {
         calcCurrentRate: function(s) {
@@ -229,11 +229,10 @@ new Vue({
             return ((s.cur / s.max) * 100).toFixed(1);
         },
         copyResultToInput: function() {
-            if (!confirm("シミュレーション結果を現在のステータスに反映しますか？")) return;
+            if (!confirm("このシミュレーション結果をステータスの現在値に反映しますか？")) return;
             for (let i = 0; i < 4; i++) {
                 this.status[i].cur = Math.round(this.result[i].cur);
             }
-            alert("反映しました。");
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
         calcRate: function(cntArray) {
