@@ -1,0 +1,349 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>放置少女 育成シミュレーター (スマホ最適化版)</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f4f8; color: #333; margin: 0; padding: 10px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h1 { font-size: 1.3em; border-left: 5px solid #4caf50; padding-left: 10px; margin-top: 5px; margin-bottom: 20px; color: #2e7d32; }
+        h3 { font-size: 1.05em; margin: 0 0 10px 0; color: #444; display: flex; justify-content: space-between; align-items: center; }
+        .section { margin-bottom: 15px; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9; }
+        
+        /* テーブルのスマホ最適化 */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 6px; border: 1px solid #ddd; background: white; }
+        table { width: 100%; border-collapse: collapse; min-width: 450px; }
+        th, td { border: 1px solid #eee; padding: 6px; text-align: center; font-size: 0.9em; }
+        th { background-color: #f1f5f9; color: #475569; font-weight: 600; }
+        
+        /* フォーム要素の調整 */
+        input[type="number"], select { width: 100%; padding: 8px 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; outline: none; background-color: #fff; text-align: center; }
+        input[type="number"]:focus, select:focus { border-color: #4caf50; box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2); }
+        
+        /* ラジオボタン・チェックボックスの押しやすさ向上 */
+        .radio-group, .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .radio-label, .checkbox-label { display: flex; align-items: center; padding: 10px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 0.95em; }
+        .radio-label input, .checkbox-label input { margin-right: 10px; transform: scale(1.2); }
+        
+        /* 設定項目のグリッド配置 */
+        .flex-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .flex-item { flex: 1; min-width: 120px; }
+        .inline-input { display: inline-block; width: 70px !important; margin: 0 4px; padding: 4px !important; text-align: center; }
+        
+        /* ボタン */
+        .btn { display: block; width: 100%; background-color: #4caf50; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1em; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn:hover { background-color: #45a049; }
+        .btn-copy { background-color: #2196F3; margin-top: 10px; padding: 10px; font-size: 0.95em; }
+        .btn-copy:hover { background-color: #1976D2; }
+        
+        .error { color: #d32f2f; font-size: 0.85em; margin-top: 8px; font-weight: bold; }
+        .percentage-badge { font-weight: bold; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; display: inline-block; }
+        .hint { font-size: 0.8em; color: #64748b; margin-top: 5px; line-height: 1.4; }
+        
+        /* 結果表示エリア */
+        .result-area { margin-top: 15px; background: #f0fdf4; padding: 12px; border-radius: 8px; border: 1px solid #bbf7d0; }
+        .result-area h4 { margin: 15px 0 5px 0; font-size: 0.95em; color: #166534; }
+        .result-list { padding-left: 20px; margin: 5px 0; font-size: 0.9em; color: #374151; }
+        .result-list li { margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container">
+    <h1>放置少女 育成シミュレーター</h1>
+
+    <!-- 1. 入力セクション -->
+    <div class="section">
+        <h3>1. ステータス入力</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 18%;">項目</th>
+                        <th style="width: 25%;">現在値</th>
+                        <th style="width: 25%;">上限値</th>
+                        <th style="width: 17%;">割合</th>
+                        <th style="width: 15%;">重み</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(s, index) in status" :key="index">
+                        <td><strong>{{ statuses_name[index] }}</strong></td>
+                        <td><input type="number" v-model.number="s.cur"></td>
+                        <td><input type="number" v-model.number="s.max"></td>
+                        <td><span class="percentage-badge">{{ calcCurrentRate(s) }}%</span></td>
+                        <td><input type="number" v-model.number="weight[index]"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="hint">※スマホ等で表がはみ出る場合は横にスクロールできます。重みの合計がプラスの時に「採用」されます。</p>
+    </div>
+
+    <!-- 2. 設定セクション -->
+    <div class="section">
+        <h3>2. 育成方法の設定</h3>
+        <div class="radio-group">
+            <label class="radio-label">
+                <input type="radio" value="1" v-model="which_sim" @change="onChg"> 目標値まで自動育成 (Calc1)
+            </label>
+            <label class="radio-label">
+                <input type="radio" value="2" v-model="which_sim" @change="onChg"> アイテム個数指定 (Calc2)
+            </label>
+        </div>
+
+        <!-- 自動育成の設定 -->
+        <div v-if="calc1" style="margin-top:12px; padding:10px; border-top:1px dashed #cbd5e1;">
+            <div class="flex-row">
+                <span class="flex-item" style="min-width:100%;">
+                    <strong>目標:</strong> 
+                    <select v-model="prio" style="display:inline-block; width:auto; margin:0 4px; padding:4px 24px 4px 8px;">
+                        <option v-for="name in statuses_name" :value="name">{{ name }}</option>
+                    </select>
+                    が 
+                    <input type="number" v-model.number="goal_thr" class="inline-input"> % になるまで
+                </span>
+            </div>
+            <div class="hint" style="margin-bottom: 5px; font-weight: bold;">▼ アイテム切り替え点(割合%)</div>
+            <div class="flex-row" style="font-size:0.9em;">
+                <div>C→B: <input type="number" v-model.number="c_thr" class="inline-input" style="width:45px !important;">%</div>
+                <div>B→A: <input type="number" v-model.number="b_thr" class="inline-input" style="width:45px !important;">%</div>
+                <div>A→S: <input type="number" v-model.number="a_thr" class="inline-input" style="width:45px !important;">%</div>
+            </div>
+        </div>
+
+        <!-- 個数指定の設定 -->
+        <div v-if="calc2" style="margin-top:12px; padding:10px; border-top:1px dashed #cbd5e1; font-size:0.95em;">
+            <strong>アイテム:</strong>
+            <select v-model="tan_type" style="display:inline-block; width:auto; margin:0 4px; padding:4px 24px 4px 8px;">
+                <option value="C">C級</option>
+                <option value="B">B級</option>
+                <option value="A">A級</option>
+                <option value="S">S級</option>
+            </select>
+            を 
+            <input type="number" v-model.number="numTan" class="inline-input" style="width:80px !important;"> 個使用
+        </div>
+    </div>
+
+    <!-- 3. 実行セクション -->
+    <div class="section">
+        <div class="checkbox-group">
+            <label class="checkbox-label" style="color: #d32f2f; font-weight: bold;">
+                <input type="checkbox" v-model="isRepeat100"> 100回試行して平均値を算出
+            </label>
+        </div>
+        <button class="btn" @click="OnSub">シミュレーション開始</button>
+        <div class="error" v-html="err_msg"></div>
+    </div>
+
+    <!-- 4. 結果表示セクション -->
+    <div v-if="submitted" class="result-area">
+        <h3>
+            <span>結果 <small v-if="isRepeat100">(100回平均)</small></span>
+        </h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">ステータス</th>
+                        <th style="width: 35%;">最終値 (平均)</th>
+                        <th style="width: 35%;">最終進捗率</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(r, index) in result" :key="index">
+                        <td><strong>{{ statuses_name[index] }}</strong></td>
+                        <td>{{ r.cur | fix_1 }}</td>
+                        <td>{{ (r.cur / r.max * 100) | fix_1 }}%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button class="btn btn-copy" @click="copyResultToInput">
+            この結果を現在値に反映する (四捨五入)
+        </button>
+
+        <h4>▼ 消費アイテム統計 (平均)</h4>
+        <ul class="result-list">
+            <li>C級: 使用 {{ c_cnt[0] | fix_1 }} / 採用 {{ c_cnt[1] | fix_1 }} <small v-if="c_cnt[0]>0">({{ calcRate(c_cnt) }}%)</small></li>
+            <li>B級: 使用 {{ b_cnt[0] | fix_1 }} / 採用 {{ b_cnt[1] | fix_1 }} <small v-if="b_cnt[0]>0">({{ calcRate(b_cnt) }}%)</small></li>
+            <li>A級: 使用 {{ a_cnt[0] | fix_1 }} / 採用 {{ a_cnt[1] | fix_1 }} <small v-if="a_cnt[0]>0">({{ calcRate(a_cnt) }}%)</small></li>
+            <li>S級: 使用 {{ s_cnt[0] | fix_1 }} / 採用 {{ s_cnt[1] | fix_1 }}</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+Vue.filter('fix_1', function (value) {
+    if (isNaN(value)) return 0;
+    return Number(value).toFixed(1);
+});
+
+new Vue({
+    el: '#app',
+    data: {
+        statuses_name: ["筋力", "敏捷", "知力", "体力"],
+        status: [
+            { cur: 2000, max: 10000 },
+            { cur: 2000, max: 10000 },
+            { cur: 2000, max: 10000 },
+            { cur: 2000, max: 10000 },
+        ],
+        result: [],
+        weight: [1, 0, 0, 1],
+        c_thr: 25,
+        b_thr: 50,
+        a_thr: 70,
+        prio: "筋力",
+        submitted: false,
+        goal_thr: 50,
+        err_msg: "",
+        c_cnt: [0, 0], b_cnt: [0, 0], a_cnt: [0, 0], s_cnt: [0, 0],
+        tan_type: 'B',
+        numTan: 100,
+        calc1: true,
+        calc2: false,
+        which_sim: 1,
+        isRepeat100: true
+    },
+    methods: {
+        calcCurrentRate: function(s) {
+            if (!s.max || s.max === 0) return 0;
+            return ((s.cur / s.max) * 100).toFixed(1);
+        },
+        copyResultToInput: function() {
+            if (!confirm("シミュレーション結果を現在のステータスに反映しますか？")) return;
+            for (let i = 0; i < 4; i++) {
+                this.status[i].cur = Math.round(this.result[i].cur);
+            }
+            alert("反映しました。次のステップのシミュレーションが可能です。");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+        calcRate: function(cntArray) {
+            if (cntArray[0] === 0) return 0;
+            return ((cntArray[1] / cntArray[0]) * 100).toFixed(1);
+        },
+        onChg: function () {
+            this.calc1 = (this.which_sim == 1);
+            this.calc2 = (this.which_sim == 2);
+        },
+        CheckForm: function () {
+            this.err_msg = "";
+            for (let i = 0; i < 4; i++) {
+                if (this.status[i].cur < 0 || this.status[i].max <= 0) {
+                    this.err_msg = "正しい数値を入力してください。";
+                    return false;
+                }
+            }
+            return true;
+        },
+        C_crv: function (x) { return -17 * (x - 0.06) * (x - 0.06) + 1; },
+        B_crv: function (x) { return -17 * (x - 0.29) * (x - 0.29) + 1; },
+        A_crv: function (x) { return -17 * (x - 0.52) * (x - 0.52) + 1; },
+        
+        runSimulationStep: function(currentStatus, type) {
+            let lower = [0.077369, 0.3, 0.54122];
+            let higher = [0.26724, 0.48209, 0.68155];
+            let limit = [0.25375, 0.38379, 0.56803];
+            let dat = [0, 0, 0, 0];
+            let isSuccess = false;
+
+            for (let i = 0; i < 4; i++) {
+                let ratio = currentStatus[i].cur / currentStatus[i].max;
+                let prob = 0;
+                let gain = 0;
+
+                if (type === 'C') {
+                    prob = (ratio < lower[0]) ? 1.0 : (ratio < higher[0]) ? this.C_crv(ratio) : limit[0];
+                    gain = Math.ceil(Math.random() * 14);
+                } else if (type === 'B') {
+                    prob = (ratio < lower[1]) ? 1.0 : (ratio < higher[1]) ? this.B_crv(ratio) : limit[1];
+                    gain = 5 + Math.ceil(Math.random() * 12);
+                } else if (type === 'A') {
+                    prob = (ratio < lower[2]) ? 1.0 : (ratio < higher[2]) ? this.A_crv(ratio) : limit[2];
+                    gain = 15 + Math.ceil(Math.random() * 10);
+                } else if (type === 'S') {
+                    prob = 1.0;
+                    gain = 30 + Math.floor(Math.random() * 10);
+                }
+
+                if (Math.random() < prob) {
+                    dat[i] = gain;
+                } else {
+                    dat[i] = -1 * Math.ceil(Math.random() * 12);
+                }
+                if (currentStatus[i].cur + dat[i] >= currentStatus[i].max) {
+                    dat[i] = currentStatus[i].max - currentStatus[i].cur;
+                }
+            }
+
+            let sumWeight = 0;
+            for (let i = 0; i < 4; i++) sumWeight += this.weight[i] * dat[i];
+
+            if (sumWeight > 0 || type === 'S') {
+                for (let i = 0; i < 4; i++) currentStatus[i].cur += dat[i];
+                isSuccess = true;
+            }
+            return isSuccess;
+        },
+
+        ExecuteSimOnce: function() {
+            let progress = JSON.parse(JSON.stringify(this.status));
+            let counts = { c: [0,0], b: [0,0], a: [0,0], s: [0,0] };
+            let main_idx = this.statuses_name.indexOf(this.prio);
+
+            if (this.calc1) {
+                let safety_net = 0;
+                while (progress[main_idx].cur / progress[main_idx].max < this.goal_thr / 100 && safety_net < 500000) {
+                    let r_main = progress[main_idx].cur / progress[main_idx].max;
+                    let type = (r_main >= this.a_thr / 100) ? 'S' : (r_main >= this.b_thr / 100) ? 'A' : (r_main >= this.c_thr / 100) ? 'B' : 'C';
+                    let ok = this.runSimulationStep(progress, type);
+                    let key = type.toLowerCase();
+                    counts[key][0]++;
+                    if (ok) counts[key][1]++;
+                    safety_net++;
+                }
+            } else {
+                for (let n = 0; n < this.numTan; n++) {
+                    let ok = this.runSimulationStep(progress, this.tan_type);
+                    let key = this.tan_type.toLowerCase();
+                    counts[key][0]++;
+                    if (ok) counts[key][1]++;
+                }
+            }
+            return { progress, counts };
+        },
+
+        OnSub: function () {
+            if (!this.CheckForm()) return;
+            const iterations = this.isRepeat100 ? 100 : 1;
+            let sum_stats = [0, 0, 0, 0];
+            let sum_counts = { c: [0,0], b: [0,0], a: [0,0], s: [0,0] };
+
+            for (let i = 0; i < iterations; i++) {
+                let res = this.ExecuteSimOnce();
+                for (let j = 0; j < 4; j++) sum_stats[j] += res.progress[j].cur;
+                ['c','b','a','s'].forEach(k => {
+                    sum_counts[k][0] += res.counts[k][0];
+                    sum_counts[k][1] += res.counts[k][1];
+                });
+            }
+
+            this.result = this.status.map((s, j) => ({ cur: sum_stats[j] / iterations, max: s.max }));
+            this.c_cnt = [sum_counts.c[0] / iterations, sum_counts.c[1] / iterations];
+            this.b_cnt = [sum_counts.b[0] / iterations, sum_counts.b[1] / iterations];
+            this.a_cnt = [sum_counts.a[0] / iterations, sum_counts.a[1] / iterations];
+            this.s_cnt = [sum_counts.s[0] / iterations, sum_counts.s[1] / iterations];
+            this.submitted = true;
+        }
+    }
+});
+</script>
+</body>
+</html>
